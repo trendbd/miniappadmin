@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Admin Panel - ViralZone</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+    <style>
+        :root { --primary: #ff0044; --bg: #f4f7f6; --sidebar: #1a252f; --sidebar-hover: #2c3e50; --text: #333; --card: #fff; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .sidebar { width: 260px; background: var(--sidebar); color: #fff; display: flex; flex-direction: column; transition: 0.3s; z-index: 1000; }
+        .logo { padding: 20px; font-size: 22px; font-weight: bold; text-align: center; background: #11181f; border-bottom: 1px solid #2c3e50; display:flex; justify-content:space-between; align-items:center; }
+        .logo span { color: var(--primary); }
+        .close-sidebar { display: none; font-size: 24px; cursor: pointer; color: #ff0044; }
+        
+        .menu { flex: 1; overflow-y: auto; padding: 10px 0; }
+        .menu-item { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; border-left: 4px solid transparent; font-size: 15px; }
+        .menu-item:hover, .menu-item.active { background: var(--sidebar-hover); border-left-color: var(--primary); color:#fff; }
+        
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position:relative; }
+        .topbar { background: var(--card); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10; }
+        .menu-toggle { font-size: 24px; cursor: pointer; display: none; color: var(--sidebar); }
+        .topbar-right button { font-size:14px; padding:8px 15px; }
+
+        .content-area { flex: 1; padding: 20px; overflow-y: auto; }
+        .section { display: none; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card); padding: 20px; border-radius: 10px; box-shadow: 0 2px 15px rgba(0,0,0,0.03); margin-bottom: 20px; border-top: 3px solid var(--primary); }
+        .card-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid var(--bg); padding-bottom: 10px; color: #2c3e50; display:flex; align-items:center; gap:8px; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group.full { grid-column: 1 / -1; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #555; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; box-sizing: border-box; outline: none; background:#f9f9f9; transition:0.3s; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background:#fff; box-shadow:0 0 5px rgba(255,0,68,0.2); }
+        
+        button { background: var(--primary); color: #fff; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-flex; align-items: center; justify-content:center; gap: 8px; transition: 0.2s; font-size:14px; }
+        button:hover { background: #d00037; }
+        button.btn-green { background: #28a745; } button.btn-green:hover { background: #218838; }
+        button.btn-dark { background: #343a40; } button.btn-dark:hover { background: #23272b; }
+        button.btn-info { background: #17a2b8; } button.btn-info:hover { background: #138496; }
+        button.btn-warning { background: #ffc107; color:#000; }
+
+        .toggle-box { background: #e9ecef; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #0088cc; display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: bold; color: #333; }
+        .toggle-box input { width: 20px; height: 20px; cursor: pointer; margin: 0; }
+
+        .channel-tag { background: #0088cc; color: #fff; padding: 6px 15px; border-radius: 20px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; font-weight: bold; }
+        .channel-tag i { cursor: pointer; transition: 0.2s; } .channel-tag i:hover { color: #ff0044; }
+        
+        .manage-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .m-tab { background: #f1f3f5; color: #333; border: 1px solid #ddd; padding: 10px 20px; border-radius: 30px; cursor: pointer; white-space: nowrap; font-weight: 600; transition: 0.3s; font-size: 14px; }
+        .m-tab:hover { background: #e2e6ea; }
+        .m-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 10px rgba(255,0,68,0.3); }
+
+        .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius:8px; border:1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; min-width:900px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; font-size:14px; vertical-align: middle; }
+        th { background: #f8f9fa; font-weight: 600; color: #333; white-space:nowrap; }
+        tr:hover { background: #f1f3f5; }
+        .thumb-preview { width: 70px; height: 45px; object-fit: cover; border-radius: 5px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+        .app-preview { width: 50px; height: 50px; border-radius: 10px; object-fit:cover; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+        
+        .action-btns { display: flex; gap: 6px; flex-wrap:wrap; }
+        .action-btns button { padding: 6px 10px; font-size: 12px; border-radius: 4px; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; color:#fff; text-transform:uppercase; }
+        .bg-success { background: #28a745; } .bg-danger { background: #dc3545; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; border-left: 5px solid var(--primary); }
+        .stat-info h3 { margin: 0; font-size: 26px; color:#222; } .stat-info p { margin: 5px 0 0; color: gray; font-size: 14px; font-weight:600; }
+        .stat-icon { font-size: 35px; color: #e9ecef; }
+
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -260px; height: 100vh; }
+            .sidebar.active { left: 0; }
+            .sidebar-overlay.active { display: block; }
+            .menu-toggle { display: block; }
+            .close-sidebar { display: block; }
+            .form-grid { grid-template-columns: 1fr; }
+            .topbar { padding: 15px; } .content-area { padding: 15px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap:15px; }
+            .action-btns button { flex:1; justify-content:center; }
+        }
+        @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
+        
+        #loadingScreen {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; color:#fff;}
+    </style>
+</head>
+<body>
+
+<div id="loadingScreen">
+    <i class="fas fa-paper-plane" style="font-size:50px; color:#0088cc; margin-bottom:20px; animation: bounce 1s infinite;"></i>
+    <h2 id="loadingText">Processing...</h2>
+</div>
+
+<div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+    <div class="logo">
+        <div><i class="fas fa-play-circle"></i> Viral<span>Zone</span></div>
+        <i class="fas fa-times close-sidebar" onclick="toggleSidebar()"></i>
+    </div>
+    <div class="menu">
+        <div class="menu-item active" onclick="switchTab('dashboard', this)"><i class="fas fa-home"></i> Dashboard</div>
+        <div class="menu-item" onclick="switchTab('manage', this)" style="border-left-color:#28a745; color:#28a745; font-weight:bold;"><i class="fas fa-list-alt"></i> Manage All Posts</div>
+        <div class="menu-item" onclick="switchTab('videos', this)"><i class="fas fa-video"></i> Add Home Video</div>
+        <div class="menu-item" onclick="switchTab('youtube', this)"><i class="fab fa-youtube"></i> Add YouTube</div>
+        <div class="menu-item" onclick="switchTab('apps', this)"><i class="fab fa-android"></i> Add App</div>
+        <div class="menu-item" onclick="switchTab('prompts', this)"><i class="fas fa-magic"></i> Add Prompt</div>
+        <div class="menu-item" onclick="switchTab('categories', this)"><i class="fas fa-tags"></i> Categories</div>
+        <div class="menu-item" onclick="switchTab('push', this)"><i class="fas fa-bullhorn"></i> Send Notification</div>
+        <div class="menu-item" onclick="switchTab('settings', this)"><i class="fas fa-cog"></i> Settings</div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="topbar">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <i class="fas fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+            <div style="font-weight:bold; font-size:18px;" id="topbar-title">Dashboard</div>
+        </div>
+        <div class="topbar-right"><button class="btn-dark" onclick="window.open('/', '_blank')"><i class="fas fa-external-link-alt"></i> View Site</button></div>
+    </div>
+
+    <div class="content-area">
+        
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="section active">
+            <div class="stats-grid">
+                <div class="stat-card" style="border-color:#ff0044;"><div class="stat-info"><h3 id="c-vid">0</h3><p>Home Videos</p></div><i class="fas fa-video stat-icon"></i></div>
+                <div class="stat-card" style="border-color:red;"><div class="stat-info"><h3 id="c-yt">0</h3><p>YouTube Videos</p></div><i class="fab fa-youtube stat-icon"></i></div>
+                <div class="stat-card" style="border-color:#25D366;"><div class="stat-info"><h3 id="c-apps">0</h3><p>Premium Apps</p></div><i class="fab fa-android stat-icon"></i></div>
+                <div class="stat-card" style="border-color:#A113EC;"><div class="stat-info"><h3 id="c-prompts">0</h3><p>Master Prompts</p></div><i class="fas fa-magic stat-icon"></i></div>
+                <div class="stat-card" style="border-color:#0088cc;"><div class="stat-info"><h3 id="c-users">0</h3><p>Bot Subscribers</p></div><i class="fas fa-users stat-icon"></i></div>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; color:#333;">Welcome to Admin Panel</h3>
+                <p style="color:gray;">আপনার সাইটের সমস্ত পোস্ট, ক্যাটাগরি, সেটিংস এবং অ্যাড কন্ট্রোল এখান থেকে খুব সহজেই মোবাইল বা কম্পিউটার দিয়ে করতে পারবেন।</p>
+                <button class="btn-green" onclick="switchTab('manage', document.querySelector('.menu-item:nth-child(2)'))" style="margin-top:10px;"><i class="fas fa-tasks"></i> Go to Manage Posts</button>
+            </div>
+        </div>
+
+        <!-- MANAGE ALL POSTS -->
+        <div id="manage" class="section">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-list-alt"></i> Manage All Published Posts</div>
+                <div class="manage-tabs">
+                    <button class="m-tab active" onclick="switchManageTab('videos', this)"><i class="fas fa-video"></i> Home Videos</button>
+                    <button class="m-tab" onclick="switchManageTab('youtube', this)"><i class="fab fa-youtube"></i> YouTube</button>
+                    <button class="m-tab" onclick="switchManageTab('apps', this)"><i class="fab fa-android"></i> Premium Apps</button>
+                    <button class="m-tab" onclick="switchManageTab('prompts', this)"><i class="fas fa-magic"></i> Prompts</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Media</th><th>Title / Name</th><th>Status</th><th>Actions Control</th></tr></thead>
+                        <tbody id="tbl-manage"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CATEGORIES -->
+        <div id="categories" class="section">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-plus-circle"></i> Add New Category</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Select Section</label><select id="catType"><option value="home">Home Videos</option><option value="youtube">YouTube</option><option value="apps">Premium Apps</option><option value="prompts">Prompts</option></select></div>
+                    <div class="form-group"><label>Category Name</label><input type="text" id="catName" placeholder="e.g. Funny, VIP MODs"></div>
+                </div>
+                <button onclick="saveCategory()"><i class="fas fa-save"></i> Save Category</button>
+            </div>
+            <div class="card">
+                <div class="card-header"><i class="fas fa-list"></i> Manage Categories</div>
+                <div style="margin-bottom:15px;"><label>Filter by Section:</label> <select id="catFilter" onchange="loadCategories()" style="max-width:300px;"><option value="home">Home Videos</option><option value="youtube">YouTube</option><option value="apps">Premium Apps</option><option value="prompts">Prompts</option></select></div>
+                <div class="table-wrap"><table><thead><tr><th>Name</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tbl-cat"></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- HOME VIDEOS -->
+        <div id="videos" class="section">
+            <div class="card">
+                <div class="card-header" id="hd-videos"><i class="fas fa-upload"></i> Add Home Video</div>
+                <input type="hidden" id="v-id">
+                <div class="form-grid">
+                    <div class="form-group full"><label>Video Title</label><input type="text" id="v-title" placeholder="Enter video title"></div>
+                    <div class="form-group"><label>Category</label><select id="v-cat"><option value="all">Uncategorized</option></select></div>
+                    <div class="form-group"><label>Popup Delay (Seconds)</label><input type="number" id="v-timer" placeholder="Default depends on settings" value="10"></div>
+                    <div class="form-group full"><label>Video Direct Link (.mp4)</label><input type="text" id="v-url" placeholder="https://domain.com/video.mp4"></div>
+                    <div class="form-group full"><label>Thumbnail URL</label><input type="text" id="v-thumb" placeholder="https://domain.com/image.jpg"></div>
+                    <div class="form-group full">
+                        <label class="toggle-box"><input type="checkbox" id="v-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Auto-Post to Telegram Channels</label>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="savePost('videos')" class="btn-green" id="btn-videos"><i class="fas fa-paper-plane"></i> Publish Video</button>
+                    <button onclick="cancelEdit('videos')" class="btn-warning" id="btn-cancel-videos" style="display:none;"><i class="fas fa-times"></i> Cancel Edit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- YOUTUBE VIDEOS -->
+        <div id="youtube" class="section">
+            <div class="card">
+                <div class="card-header" id="hd-youtube"><i class="fas fa-upload"></i> Add YouTube Video</div>
+                <input type="hidden" id="y-id">
+                <div class="form-grid">
+                    <div class="form-group full"><label>YouTube Link (Auto-fetches thumbnail)</label><input type="text" id="y-url" placeholder="https://youtube.com/watch?v=..." oninput="fetchYtThumb()"></div>
+                    <div class="form-group full"><label>Video Title</label><input type="text" id="y-title" placeholder="Enter video title"></div>
+                    <div class="form-group"><label>Category</label><select id="y-cat"><option value="all">Uncategorized</option></select></div>
+                    <div class="form-group"><label>Popup Delay (Seconds)</label><input type="number" id="y-timer" value="10"></div>
+                    <div class="form-group full"><label>Thumbnail URL (Optional)</label><input type="text" id="y-thumb"></div>
+                    <div class="form-group full">
+                        <label class="toggle-box"><input type="checkbox" id="y-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Auto-Post to Telegram Channels</label>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="savePost('youtube')" class="btn-green" id="btn-youtube"><i class="fas fa-paper-plane"></i> Publish YouTube</button>
+                    <button onclick="cancelEdit('youtube')" class="btn-warning" id="btn-cancel-youtube" style="display:none;"><i class="fas fa-times"></i> Cancel Edit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREMIUM APPS -->
+        <div id="apps" class="section">
+            <div class="card">
+                <div class="card-header" id="hd-apps"><i class="fas fa-upload"></i> Add Premium App / MOD APK</div>
+                <input type="hidden" id="a-id">
+                <div class="form-grid">
+                    <div class="form-group full"><label>App Title</label><input type="text" id="a-title" placeholder="e.g. CapCut Pro MOD"></div>
+                    <div class="form-group"><label>App Icon URL</label><input type="text" id="a-icon" placeholder="https://..."></div>
+                    <div class="form-group"><label>Category</label><select id="a-cat"><option value="all">Uncategorized</option></select></div>
+                    <div class="form-group"><label>App Version (Optional)</label><input type="text" id="a-version" placeholder="e.g. v2.1.4"></div>
+                    <div class="form-group"><label>App Size (Optional)</label><input type="text" id="a-size" placeholder="e.g. 150 MB"></div>
+                    <div class="form-group full"><label>Direct Download Link</label><input type="text" id="a-url" placeholder="https://drive.google.com/..."></div>
+                    <div class="form-group full">
+                        <label class="toggle-box"><input type="checkbox" id="a-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Auto-Post to Telegram Channels</label>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="savePost('apps')" class="btn-green" id="btn-apps"><i class="fas fa-paper-plane"></i> Publish App</button>
+                    <button onclick="cancelEdit('apps')" class="btn-warning" id="btn-cancel-apps" style="display:none;"><i class="fas fa-times"></i> Cancel Edit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROMPT MASTER -->
+        <div id="prompts" class="section">
+            <div class="card">
+                <div class="card-header" id="hd-prompts"><i class="fas fa-upload"></i> Add Prompt Master</div>
+                <input type="hidden" id="p-id">
+                <div class="form-grid">
+                    <div class="form-group full"><label>Prompt Title</label><input type="text" id="p-title" placeholder="e.g. 4K Cinematic AI Art"></div>
+                    <div class="form-group full"><label>Image Preview URL</label><input type="text" id="p-image" placeholder="https://..."></div>
+                    <div class="form-group full"><label>Category</label><select id="p-cat"><option value="all">Uncategorized</option></select></div>
+                    <div class="form-group full"><label>Secret Prompt Text (Will be copied by users)</label><textarea id="p-text" rows="5" placeholder="Write full prompt here..."></textarea></div>
+                    <div class="form-group full">
+                        <label class="toggle-box"><input type="checkbox" id="p-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Auto-Post to Telegram Channels</label>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="savePost('prompts')" class="btn-green" id="btn-prompts"><i class="fas fa-paper-plane"></i> Publish Prompt</button>
+                    <button onclick="cancelEdit('prompts')" class="btn-warning" id="btn-cancel-prompts" style="display:none;"><i class="fas fa-times"></i> Cancel Edit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CUSTOM PUSH NOTIFICATIONS -->
+        <div id="push" class="section">
+            <div class="card" style="border-top-color:#0088cc;">
+                <div class="card-header" style="color:#0088cc;"><i class="fas fa-paper-plane"></i> Send Custom Push Notification</div>
+                <div class="form-grid">
+                    <div class="form-group full">
+                        <label>Thumbnail / Image URL (Optional)</label>
+                        <input type="text" id="push-img" placeholder="https://domain.com/image.jpg">
+                    </div>
+                    <div class="form-group full">
+                        <label>Notification Message / Caption</label>
+                        <textarea id="push-text" rows="4" placeholder="Write your awesome message here..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Button Name</label>
+                        <input type="text" id="push-btn-text" placeholder="e.g. Open Mini App" value="Open App">
+                    </div>
+                    <div class="form-group">
+                        <label>Button Action URL (Optional)</label>
+                        <input type="text" id="push-btn-url" placeholder="Leave blank to open default Mini App">
+                    </div>
+                    <div class="form-group full">
+                        <label class="toggle-box"><input type="checkbox" id="push-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Send this to Connected Telegram Channels too</label>
+                    </div>
+                </div>
+                <button onclick="sendCustomPush()" style="background:#0088cc; width:100%;"><i class="fas fa-bullhorn"></i> Send Custom Notification</button>
+            </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="settings" class="section">
+            <div class="card">
+                <div class="card-header"><i class="fas fa-cog"></i> Site Global Settings & Ad Management</div>
+                <div class="form-grid">
+                    <div class="form-group full"><label>Your Site Domain (For Web Link Copying)</label><input type="text" id="set-domain" placeholder="e.g. https://viralzone.netlify.app"></div>
+                    <div class="form-group"><label>Telegram Bot Username</label><input type="text" id="set-botuser" placeholder="e.g. @ViralZoneBot"></div>
+                    <div class="form-group"><label>Telegram App Shortname</label><input type="text" id="set-appname" placeholder="e.g. viralapp"></div>
+                    <div class="form-group full"><label>Telegram Bot HTTP API Token (Required for Notifications)</label><input type="password" id="set-bottoken" placeholder="123456789:ABCDefgh..."></div>
+                    
+                    <!-- 🌟 Auto Post Channels Manager -->
+                    <div class="form-group full" style="background:#f1f3f5; padding:15px; border-radius:8px; border:1px solid #ddd;">
+                        <label style="color:#0088cc; font-size:15px;"><i class="fas fa-bullhorn"></i> Connected Telegram Channels (For Auto-Post)</label>
+                        <p style="font-size:12px; color:gray; margin-top:0;">আপনার চ্যানেল বা গ্রুপের আইডি এখানে যুক্ত করুন (শুরুতে -100 থাকতে হবে)।</p>
+                        <div style="display:flex; gap:10px;">
+                            <input type="text" id="new-channel-id" placeholder="e.g. -1002974527720">
+                            <button type="button" class="btn-info" onclick="addChannelId()" style="width:100px;"><i class="fas fa-plus"></i> Add</button>
+                        </div>
+                        <div id="channel-list" style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+                    </div>
+
+                    <div class="form-group full"><label>Adsterra CPA / Offer Link (For Ads/Signup)</label><input type="text" id="set-cpa" placeholder="https://cpalink..."></div>
+                    <div class="form-group full"><label>Socialbar Ad Code (Adsterra)</label><textarea id="set-socialbar" rows="3" placeholder="Paste script here..."></textarea></div>
+                    <div class="form-group full"><label>Popunder Ad Code (Adsterra)</label><textarea id="set-popunder" rows="3" placeholder="Paste script here..."></textarea></div>
+                    
+                    <div class="form-group"><label>Global Default Popup Timer (Seconds)</label><input type="number" id="set-popup" value="10"></div>
+                    <div class="form-group"><label>Signup Ad-Free Time (Hours)</label><input type="number" id="set-adfree" value="10"></div>
+                </div>
+                <button onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    firebase.initializeApp({ apiKey: "AIzaSyC6QaLQIlt4I31zPx-U7yHlBRRCgEVZCM4", authDomain: "video-zone-bd-42399.firebaseapp.com", databaseURL: "https://video-zone-bd-42399-default-rtdb.firebaseio.com", projectId: "video-zone-bd-42399" });
+    const db = firebase.database();
+    
+    let siteSettings = { userDomain: window.location.origin, tgBotUsername: "", tgAppName: "", botToken: "" };
+    let manageData = { videos: [], youtube: [], apps: [], prompts: [] };
+    let currentManageType = 'videos';
+    let channelIds = []; // Stores the TG channel IDs for auto-posting
+
+    function toggleSidebar() { $('#sidebar').toggleClass('active'); $('.sidebar-overlay').toggleClass('active'); }
+
+    function switchTab(id, el) {
+        $('.section').removeClass('active'); $('#' + id).addClass('active');
+        if(el) { $('.menu-item').removeClass('active'); $(el).addClass('active'); }
+        $('#topbar-title').text(id.charAt(0).toUpperCase() + id.slice(1));
+        if($(window).width() <= 768) { toggleSidebar(); }
+    }
+
+    $(document).ready(function() {
+        loadSettings(); loadCounts(); loadCategories(); initManageData(); 
+    });
+
+    function loadCounts() {
+        ['videos', 'youtube', 'apps', 'prompts'].forEach(type => {
+            db.ref(type).on('value', s => { $(`#c-${type=== 'videos' ? 'vid' : type=== 'youtube' ? 'yt' : type}`).text(s.numChildren()); });
+        });
+        db.ref('bot_subscribers').on('value', s => { $('#c-users').text(s.numChildren()); });
+    }
+
+    // 🌟 Load Settings & Adsterra Codes & Channels
+    function loadSettings() {
+        db.ref('settings').on('value', s => {
+            let v = s.val() || {};
+            if(v.userDomain) { $('#set-domain').val(v.userDomain); siteSettings.userDomain = v.userDomain; }
+            if(v.cpaLink) $('#set-cpa').val(v.cpaLink);
+            if(v.socialbar) $('#set-socialbar').val(v.socialbar);
+            if(v.popunder) $('#set-popunder').val(v.popunder);
+            if(v.tgBotUsername) { $('#set-botuser').val(v.tgBotUsername); siteSettings.tgBotUsername = v.tgBotUsername.replace('@',''); }
+            if(v.tgAppName) { $('#set-appname').val(v.tgAppName); siteSettings.tgAppName = v.tgAppName; }
+            if(v.tgBotToken) { $('#set-bottoken').val(v.tgBotToken); siteSettings.botToken = v.tgBotToken; }
+            if(v.defaultPopup) $('#set-popup').val(v.defaultPopup);
+            if(v.defaultAdFree) $('#set-adfree').val(v.defaultAdFree);
+            
+            // Load Channel IDs
+            channelIds = v.channelIds ? Object.values(v.channelIds) : [];
+            renderChannels();
+        });
+    }
+
+    function saveSettings() {
+        db.ref('settings').update({
+            userDomain: $('#set-domain').val(),
+            cpaLink: $('#set-cpa').val(),
+            socialbar: $('#set-socialbar').val(),
+            popunder: $('#set-popunder').val(),
+            tgBotUsername: $('#set-botuser').val(),
+            tgAppName: $('#set-appname').val(),
+            tgBotToken: $('#set-bottoken').val(),
+            defaultPopup: $('#set-popup').val() || 10,
+            defaultAdFree: $('#set-adfree').val() || 10,
+            channelIds: channelIds.length > 0 ? channelIds : null
+        }).then(() => alert("Settings Saved Successfully!"));
+    }
+
+    // 🌟 Channel ID Management UI
+    function addChannelId() {
+        let val = $('#new-channel-id').val().trim();
+        if(val && !channelIds.includes(val)) {
+            channelIds.push(val); $('#new-channel-id').val(''); renderChannels();
+        } else if (!val) { alert("Please enter a valid ID"); }
+    }
+    function removeChannelId(val) { channelIds = channelIds.filter(id => id !== val); renderChannels(); }
+    function renderChannels() {
+        let h = '';
+        if(channelIds.length === 0) h = '<span style="color:gray; font-size:12px;">No channels connected.</span>';
+        channelIds.forEach(id => {
+            h += `<div class="channel-tag">${id} <i class="fas fa-times-circle" onclick="removeChannelId('${id}')"></i></div>`;
+        });
+        $('#channel-list').html(h);
+    }
+
+    // Categories
+    function saveCategory() {
+        let type = $('#catType').val(); let name = $('#catName').val();
+        if(!name) return alert("Enter category name!");
+        db.ref(`categories_${type}`).push({ name: name, status: 'active' }).then(() => { $('#catName').val(''); alert("Category Added!"); });
+    }
+    
+    function loadCategories() {
+        let type = $('#catFilter').val();
+        db.ref(`categories_${type}`).on('value', s => {
+            let h = ''; let opts = '<option value="all">Uncategorized</option>';
+            s.forEach(c => {
+                let d = c.val(); let statClass = d.status === 'hidden' ? 'bg-danger' : 'bg-success';
+                h += `<tr><td>${d.name}</td><td><span class="badge ${statClass}">${d.status}</span></td>
+                    <td class="action-btns"><button class="btn-warning" onclick="toggleStatus('categories_${type}', '${c.key}', '${d.status}')"><i class="fas fa-eye${d.status==='hidden'?'-slash':''}"></i></button>
+                    <button class="btn-dark" style="background:#dc3545;" onclick="deleteData('categories_${type}', '${c.key}')"><i class="fas fa-trash"></i></button></td></tr>`;
+                if(d.status !== 'hidden') opts += `<option value="${c.key}">${d.name}</option>`;
+            });
+            $('#tbl-cat').html(h);
+            if(type === 'home') $('#v-cat').html(opts); else if(type === 'youtube') $('#y-cat').html(opts);
+            else if(type === 'apps') $('#a-cat').html(opts); else if(type === 'prompts') $('#p-cat').html(opts);
+        });
+        ['home', 'youtube', 'apps', 'prompts'].forEach(t => {
+            if(t !== type) {
+                db.ref(`categories_${t}`).once('value', s => {
+                    let o = '<option value="all">Uncategorized</option>';
+                    s.forEach(c => { if(c.val().status !== 'hidden') o += `<option value="${c.key}">${c.val().name}</option>`; });
+                    if(t === 'home') $('#v-cat').html(o); else if(t === 'youtube') $('#y-cat').html(o);
+                    else if(t === 'apps') $('#a-cat').html(o); else if(t === 'prompts') $('#p-cat').html(o);
+                });
+            }
+        });
+    }
+
+    // 🌟 Publish Post & Auto Post to Telegram Channel
+    function savePost(type) {
+        let idField = type === 'videos' ? 'v-id' : type === 'youtube' ? 'y-id' : type === 'apps' ? 'a-id' : 'p-id';
+        let id = $(`#${idField}`).val(); let data = { timestamp: Date.now(), status: 'active' };
+
+        if(type === 'videos') {
+            data.title = $('#v-title').val(); data.categoryId = $('#v-cat').val(); data.videoUrl = $('#v-url').val(); data.thumb = $('#v-thumb').val(); data.popupTimer = $('#v-timer').val();
+            if(!data.title || !data.videoUrl) return alert("Title and Video URL are required!");
+        } else if (type === 'youtube') {
+            data.title = $('#y-title').val(); data.categoryId = $('#y-cat').val(); data.videoUrl = $('#y-url').val(); data.thumb = $('#y-thumb').val(); data.popupTimer = $('#y-timer').val();
+            if(!data.title || !data.videoUrl) return alert("Title and YouTube URL are required!");
+        } else if (type === 'apps') {
+            data.title = $('#a-title').val(); data.categoryId = $('#a-cat').val(); data.icon = $('#a-icon').val(); data.downloadUrl = $('#a-url').val(); data.version = $('#a-version').val(); data.size = $('#a-size').val();
+            if(!data.title || !data.downloadUrl) return alert("App Title and Download URL are required!");
+        } else if (type === 'prompts') {
+            data.title = $('#p-title').val(); data.categoryId = $('#p-cat').val(); data.image = $('#p-image').val(); data.promptText = $('#p-text').val();
+            if(!data.title || !data.promptText) return alert("Title and Prompt Text are required!");
+        }
+
+        if(id) { 
+            delete data.timestamp; 
+            db.ref(`${type}/${id}`).update(data).then(() => { 
+                alert("Updated successfully!"); cancelEdit(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)')); 
+            }); 
+        } else { 
+            // 🌟 New Post: Check Auto Post Checkbox
+            let autoPostChecked = $(`#${type === 'videos' ? 'v' : type === 'youtube' ? 'y' : type === 'apps' ? 'a' : 'p'}-autopost`).is(':checked');
+            
+            db.ref(type).push(data).then((snap) => { 
+                let newId = snap.key;
+                if(autoPostChecked && channelIds.length > 0) {
+                    sendAutoPostToChannels(newId, type, data.title, data.thumb || data.image || data.icon);
+                } else {
+                    alert("Published successfully!"); 
+                    clearForm(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)')); 
+                }
+            }); 
+        }
+    }
+
+    function initManageData() {
+        ['videos', 'youtube', 'apps', 'prompts'].forEach(type => {
+            db.ref(type).on('value', s => {
+                let arr = []; s.forEach(c => { arr.push({id: c.key, d: c.val()}); }); manageData[type] = arr.reverse();
+                if(currentManageType === type) renderManageTable();
+            });
+        });
+    }
+
+    function switchManageTab(type, el) {
+        $('.m-tab').removeClass('active');
+        if(el) $(el).addClass('active'); else $(`.m-tab[onclick*="'${type}'"]`).addClass('active');
+        currentManageType = type; renderManageTable();
+    }
+
+    function renderManageTable() {
+        let h = ''; let type = currentManageType; let arr = manageData[type] || [];
+        if(arr.length === 0) { h = `<tr><td colspan="4" style="text-align:center; color:gray; padding:20px;">No posts found in this section.</td></tr>`; } 
+        else {
+            arr.forEach(x => {
+                if(!x.d) return; 
+                let statClass = x.d.status === 'hidden' ? 'bg-danger' : 'bg-success';
+                let thumbImg = x.d.thumb || x.d.image || x.d.icon || 'https://via.placeholder.com/60x40';
+                let imgClass = type === 'apps' ? 'app-preview' : 'thumb-preview';
+                let rawTitle = x.d.title || x.d.promptText || 'No Title';
+                let titleTxt = String(rawTitle).substring(0, 40) + '...';
+                let safeEncodedTitle = encodeURIComponent(String(rawTitle).substring(0, 50)).replace(/'/g, "%27");
+                let safeThumb = String(thumbImg).replace(/'/g, "%27");
+
+                h += `<tr><td><img src="${thumbImg}" class="${imgClass}"></td><td style="font-weight:600;">${titleTxt}</td><td><span class="badge ${statClass}">${x.d.status || 'active'}</span></td>
+                    <td class="action-btns">
+                        <button class="btn-dark" onclick="copyWebUrl('${x.id}', '${type === 'videos' ? 'home' : type}')" title="Copy Web Link"><i class="fas fa-link"></i></button>
+                        <button class="btn-info" onclick="copyTgUrl('${x.id}', '${type === 'videos' ? 'home' : type}')" title="Copy TG Mini App Link"><i class="fab fa-telegram"></i></button>
+                        <button class="btn-warning" onclick="sendPush('${x.id}', '${type}', '${safeEncodedTitle}', '${safeThumb}')" title="Send Notification to Subs & Channels"><i class="fas fa-bell"></i> Notify</button>
+                        <button class="btn-green" onclick="editPost('${type}', '${x.id}')"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn-warning" style="background:#dc3545;color:#fff;" onclick="toggleStatus('${type}', '${x.id}', '${x.d.status}')"><i class="fas fa-eye${x.d.status==='hidden'?'-slash':''}"></i></button>
+                        <button class="btn-dark" style="background:#343a40;" onclick="deleteData('${type}', '${x.id}')"><i class="fas fa-trash"></i></button>
+                    </td></tr>`;
+            });
+        }
+        $('#tbl-manage').html(h);
+    }
+
+    function editPost(type, id) {
+        let tabMap = { 'videos': 3, 'youtube': 4, 'apps': 5, 'prompts': 6 };
+        let menuEl = document.querySelector(`.menu-item:nth-child(${tabMap[type]})`); switchTab(type, menuEl);
+        
+        db.ref(`${type}/${id}`).once('value', s => {
+            let d = s.val(); window.scrollTo({ top: 0, behavior: 'smooth' });
+            if(type === 'videos') {
+                $('#v-id').val(id); $('#v-title').val(d.title); $('#v-cat').val(d.categoryId); $('#v-url').val(d.videoUrl); $('#v-thumb').val(d.thumb); $('#v-timer').val(d.popupTimer);
+                $('#hd-videos').html('<i class="fas fa-edit"></i> Edit Home Video'); $('#btn-videos').html('<i class="fas fa-save"></i> Update'); $('#btn-cancel-videos').show();
+            } else if (type === 'youtube') {
+                $('#y-id').val(id); $('#y-title').val(d.title); $('#y-cat').val(d.categoryId); $('#y-url').val(d.videoUrl); $('#y-thumb').val(d.thumb); $('#y-timer').val(d.popupTimer);
+                $('#hd-youtube').html('<i class="fas fa-edit"></i> Edit YouTube Video'); $('#btn-youtube').html('<i class="fas fa-save"></i> Update'); $('#btn-cancel-youtube').show();
+            } else if (type === 'apps') {
+                $('#a-id').val(id); $('#a-title').val(d.title); $('#a-cat').val(d.categoryId); $('#a-icon').val(d.icon); $('#a-url').val(d.downloadUrl); $('#a-version').val(d.version); $('#a-size').val(d.size);
+                $('#hd-apps').html('<i class="fas fa-edit"></i> Edit App'); $('#btn-apps').html('<i class="fas fa-save"></i> Update'); $('#btn-cancel-apps').show();
+            } else if (type === 'prompts') {
+                $('#p-id').val(id); $('#p-title').val(d.title); $('#p-cat').val(d.categoryId); $('#p-image').val(d.image); $('#p-text').val(d.promptText);
+                $('#hd-prompts').html('<i class="fas fa-edit"></i> Edit Prompt'); $('#btn-prompts').html('<i class="fas fa-save"></i> Update'); $('#btn-cancel-prompts').show();
+            }
+        });
+    }
+    
+    function cancelEdit(type) { clearForm(type); $(`#btn-cancel-${type}`).hide(); $(`#btn-${type}`).html('<i class="fas fa-paper-plane"></i> Publish'); $(`#hd-${type}`).html('<i class="fas fa-plus-circle"></i> Add New'); switchTab('manage', document.querySelector('.menu-item:nth-child(2)')); }
+    function clearForm(type) { $(`#${type} input, #${type} textarea`).val(''); }
+    function toggleStatus(path, id, cStat) { db.ref(`${path}/${id}`).update({ status: cStat === 'hidden' ? 'active' : 'hidden' }); }
+    function deleteData(path, id) { if(confirm("Permanently delete?")) db.ref(`${path}/${id}`).remove(); }
+    function fetchYtThumb() { let u=$('#y-url').val(); let m=u.match(/(?:v=|youtu\.be\/|shorts\/)([^"&?\/\s]{11})/); if(m) $('#y-thumb').val(`https://img.youtube.com/vi/${m[1]}/hqdefault.jpg`); }
+
+    function copyWebUrl(id, type) { let u = `${siteSettings.userDomain.replace(/\/$/, "")}/?id=${id}&type=${type}`; let t = $("<input>"); $("body").append(t); t.val(u).select(); document.execCommand("copy"); t.remove(); alert("Web Link Copied:\n" + u); }
+    function copyTgUrl(id, type) { if (!siteSettings.tgBotUsername || !siteSettings.tgAppName) return alert("Setup Telegram Bot details first!"); let u = `https://t.me/${siteSettings.tgBotUsername}/${siteSettings.tgAppName}?startapp=${type}_${id}`; let t = $("<input>"); $("body").append(t); t.val(u).select(); document.execCommand("copy"); t.remove(); alert("TG Mini App Link Copied:\n" + u); }
+
+    // 🌟 Auto Post Logic
+    async function sendAutoPostToChannels(id, type, rawTitle, thumbUrl) {
+        if(!siteSettings.botToken || channelIds.length === 0) {
+            alert("Published successfully!"); clearForm(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)')); return;
+        }
+        $('#loadingText').text("Auto-Posting to Channels..."); $('#loadingScreen').css('display', 'flex');
+        
+        let title = String(rawTitle).substring(0, 50); let dbType = type === 'videos' ? 'home' : type;
+        let webAppUrl = `${siteSettings.userDomain.replace(/\/$/, "")}/?id=${id}&type=${dbType}`;
+        let btnText = type === 'apps' ? '📥 Download Now' : type === 'prompts' ? '💡 View Prompt' : '▶️ Watch Now';
+        let messageText = `🔥 <b>New Post Added!</b>\n\n📌 <b>${title}</b>\n\nClick the button below to view it instantly! 👇`;
+        let apiUrl = (thumbUrl && thumbUrl !== 'https://via.placeholder.com/60x40') ? `https://api.telegram.org/bot${siteSettings.botToken}/sendPhoto` : `https://api.telegram.org/bot${siteSettings.botToken}/sendMessage`;
+
+        for(let i=0; i<channelIds.length; i++) {
+            let payload = { chat_id: channelIds[i], parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: btnText, web_app: { url: webAppUrl } }]] } };
+            if(apiUrl.includes('sendPhoto')) { payload.photo = thumbUrl; payload.caption = messageText; } else { payload.text = messageText; }
+            try { await $.ajax({ url: apiUrl, type: "POST", contentType: "application/json", data: JSON.stringify(payload) }); } catch(e) { console.log(e); }
+        }
+        $('#loadingScreen').hide(); alert("Published and Auto-Posted to Channels successfully!"); clearForm(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)'));
+    }
+
+    // 🌟 Manual Push Logic (Subscribers AND Channels)
+    async function sendPush(id, type, encTitle, thumbUrl) {
+        if(!siteSettings.botToken) return alert("Bot Token missing!");
+        let title = decodeURIComponent(encTitle); if(!confirm(`Send Push Notification to all Users & Channels for: "${title}"?`)) return;
+        
+        $('#loadingText').text("Sending Post Notifications..."); $('#loadingScreen').css('display', 'flex');
+        let dbType = type === 'videos' ? 'home' : type; let webAppUrl = `${siteSettings.userDomain.replace(/\/$/, "")}/?id=${id}&type=${dbType}`;
+        let btnText = type === 'apps' ? '📥 Download Now' : type === 'prompts' ? '💡 View Prompt' : '▶️ Watch Now';
+        let messageText = `🔥 <b>New Post Added!</b>\n\n📌 <b>${title}</b>\n\nClick the button below to view it instantly! 👇`;
+        let apiUrl = (thumbUrl && thumbUrl !== 'https://via.placeholder.com/60x40') ? `https://api.telegram.org/bot${siteSettings.botToken}/sendPhoto` : `https://api.telegram.org/bot${siteSettings.botToken}/sendMessage`;
+
+        try {
+            let snap = await db.ref('bot_subscribers').once('value');
+            let users = []; if(snap.exists()) snap.forEach(c => { users.push(c.key); });
+            
+            // Combine Bot Subscribers and Connected Channels!
+            let allTargets = users.concat(channelIds);
+            let sent = 0; let failed = 0;
+
+            for(let i=0; i<allTargets.length; i++) {
+                let payload = { chat_id: allTargets[i], parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: btnText, web_app: { url: webAppUrl } }]] } };
+                if(apiUrl.includes('sendPhoto')) { payload.photo = thumbUrl; payload.caption = messageText; } else { payload.text = messageText; }
+                try { await $.ajax({ url: apiUrl, type: "POST", contentType: "application/json", data: JSON.stringify(payload) }); sent++; } catch(e) { failed++; }
+            }
+            $('#loadingScreen').hide(); alert(`Notification Sent!\nSuccess: ${sent}\nFailed: ${failed}`);
+        } catch(error) { $('#loadingScreen').hide(); alert("Error sending notifications!"); }
+    }
+
+    // 🌟 CUSTOM PUSH NOTIFICATIONS
+    async function sendCustomPush() {
+        if(!siteSettings.botToken) return alert("Bot Token missing!");
+        let imgUrl = $('#push-img').val(); let text = $('#push-text').val();
+        let btnText = $('#push-btn-text').val() || "Open App"; let customUrl = $('#push-btn-url').val();
+        let isAutoPost = $('#push-autopost').is(':checked');
+        
+        if(!text) return alert("Please enter a message or caption!");
+        if(!confirm("Are you sure you want to send this notification?")) return;
+        
+        $('#loadingText').text("Sending Custom Notifications..."); $('#loadingScreen').css('display', 'flex');
+        
+        let webAppUrl = siteSettings.userDomain.replace(/\/$/, "");
+        let btnObj = customUrl ? { text: btnText, url: customUrl } : { text: btnText, web_app: { url: webAppUrl } };
+        let apiUrl = imgUrl ? `https://api.telegram.org/bot${siteSettings.botToken}/sendPhoto` : `https://api.telegram.org/bot${siteSettings.botToken}/sendMessage`;
+        
+        try {
+            let snap = await db.ref('bot_subscribers').once('value');
+            let users = []; if(snap.exists()) snap.forEach(c => { users.push(c.key); });
+            
+            // Include channels if checkbox is ticked
+            let allTargets = isAutoPost ? users.concat(channelIds) : users;
+            let sent = 0; let failed = 0;
+
+            for(let i=0; i<allTargets.length; i++) {
+                let payload = { chat_id: allTargets[i], parse_mode: "HTML", reply_markup: { inline_keyboard: [[ btnObj ]] } };
+                if(imgUrl) { payload.photo = imgUrl; payload.caption = text; } else { payload.text = text; }
+                try { await $.ajax({ url: apiUrl, type: "POST", contentType: "application/json", data: JSON.stringify(payload) }); sent++; } catch(e) { failed++; }
+            }
+            $('#loadingScreen').hide(); $('#push-img, #push-text, #push-btn-url').val('');
+            alert(`Custom Notification Sent!\nSuccess: ${sent}\nFailed: ${failed}`);
+        } catch(error) { $('#loadingScreen').hide(); alert("Error sending notifications!"); }
+    }
+
+</script>
+</body>
+</html>
