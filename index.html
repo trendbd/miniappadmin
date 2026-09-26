@@ -51,7 +51,10 @@
         button.btn-info { background: #17a2b8; } button.btn-info:hover { background: #138496; }
         button.btn-warning { background: #ffc107; color:#000; }
 
-        .toggle-box { background: #e9ecef; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 4px solid #0088cc; display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: bold; color: #333; }
+        /* 🌟 Toggle Buttons Box */
+        .toggle-container { display: flex; flex-wrap: wrap; gap: 15px; width: 100%; margin-bottom:15px; }
+        .toggle-box { background: #e9ecef; padding: 12px; border-radius: 6px; border-left: 4px solid #0088cc; display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: bold; color: #333; flex: 1; min-width: 250px; }
+        .toggle-box.bot-notify { border-left-color: #ffcc00; }
         .toggle-box input { width: 20px; height: 20px; cursor: pointer; margin: 0; }
 
         .channel-tag { background: #0088cc; color: #fff; padding: 6px 15px; border-radius: 20px; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; font-weight: bold; }
@@ -150,20 +153,31 @@
             </div>
         </div>
 
-        <!-- MANAGE ALL POSTS -->
+        <!-- 🌟 ALL-IN-ONE MANAGE SECTION -->
         <div id="manage" class="section">
             <div class="card">
                 <div class="card-header"><i class="fas fa-list-alt"></i> Manage All Published Posts</div>
+                
                 <div class="manage-tabs">
                     <button class="m-tab active" onclick="switchManageTab('videos', this)"><i class="fas fa-video"></i> Home Videos</button>
                     <button class="m-tab" onclick="switchManageTab('youtube', this)"><i class="fab fa-youtube"></i> YouTube</button>
                     <button class="m-tab" onclick="switchManageTab('apps', this)"><i class="fab fa-android"></i> Premium Apps</button>
                     <button class="m-tab" onclick="switchManageTab('prompts', this)"><i class="fas fa-magic"></i> Prompts</button>
                 </div>
+
                 <div class="table-wrap">
                     <table>
-                        <thead><tr><th>Media</th><th>Title / Name</th><th>Status</th><th>Actions Control</th></tr></thead>
-                        <tbody id="tbl-manage"></tbody>
+                        <thead>
+                            <tr>
+                                <th>Media</th>
+                                <th>Title / Name</th>
+                                <th>Status</th>
+                                <th>Actions Control</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbl-manage">
+                            <!-- Data will be loaded here dynamically -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -197,8 +211,11 @@
                     <div class="form-group"><label>Popup Delay (Seconds)</label><input type="number" id="v-timer" placeholder="Default depends on settings" value="10"></div>
                     <div class="form-group full"><label>Video Direct Link (.mp4)</label><input type="text" id="v-url" placeholder="https://domain.com/video.mp4"></div>
                     <div class="form-group full"><label>Thumbnail URL</label><input type="text" id="v-thumb" placeholder="https://domain.com/image.jpg"></div>
-                    <div class="form-group full">
-                        <label class="toggle-box"><input type="checkbox" id="v-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Auto-Post to Telegram Channels</label>
+                    
+                    <!-- 🌟 Toggle Checkboxes -->
+                    <div class="form-group full toggle-container">
+                        <label class="toggle-box"><input type="checkbox" id="v-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Post to Channels</label>
+                        <label class="toggle-box bot-notify"><input type="checkbox" id="v-notify" checked> <i class="fas fa-bell" style="color:#ffcc00; font-size:20px;"></i> Notify Subscribers</label>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -219,8 +236,11 @@
                     <div class="form-group"><label>Category</label><select id="y-cat"><option value="all">Uncategorized</option></select></div>
                     <div class="form-group"><label>Popup Delay (Seconds)</label><input type="number" id="y-timer" value="10"></div>
                     <div class="form-group full"><label>Thumbnail URL (Optional)</label><input type="text" id="y-thumb"></div>
-                    <div class="form-group full">
-                        <label class="toggle-box"><input type="checkbox" id="y-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Auto-Post to Telegram Channels</label>
+                    
+                    <!-- 🌟 Toggle Checkboxes -->
+                    <div class="form-group full toggle-container">
+                        <label class="toggle-box"><input type="checkbox" id="y-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Post to Channels</label>
+                        <label class="toggle-box bot-notify"><input type="checkbox" id="y-notify" checked> <i class="fas fa-bell" style="color:#ffcc00; font-size:20px;"></i> Notify Subscribers</label>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -242,8 +262,11 @@
                     <div class="form-group"><label>App Version (Optional)</label><input type="text" id="a-version" placeholder="e.g. v2.1.4"></div>
                     <div class="form-group"><label>App Size (Optional)</label><input type="text" id="a-size" placeholder="e.g. 150 MB"></div>
                     <div class="form-group full"><label>Direct Download Link</label><input type="text" id="a-url" placeholder="https://drive.google.com/..."></div>
-                    <div class="form-group full">
-                        <label class="toggle-box"><input type="checkbox" id="a-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Auto-Post to Telegram Channels</label>
+                    
+                    <!-- 🌟 Toggle Checkboxes -->
+                    <div class="form-group full toggle-container">
+                        <label class="toggle-box"><input type="checkbox" id="a-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Post to Channels</label>
+                        <label class="toggle-box bot-notify"><input type="checkbox" id="a-notify" checked> <i class="fas fa-bell" style="color:#ffcc00; font-size:20px;"></i> Notify Subscribers</label>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -263,8 +286,11 @@
                     <div class="form-group full"><label>Image Preview URL</label><input type="text" id="p-image" placeholder="https://..."></div>
                     <div class="form-group full"><label>Category</label><select id="p-cat"><option value="all">Uncategorized</option></select></div>
                     <div class="form-group full"><label>Secret Prompt Text (Will be copied by users)</label><textarea id="p-text" rows="5" placeholder="Write full prompt here..."></textarea></div>
-                    <div class="form-group full">
-                        <label class="toggle-box"><input type="checkbox" id="p-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Auto-Post to Telegram Channels</label>
+                    
+                    <!-- 🌟 Toggle Checkboxes -->
+                    <div class="form-group full toggle-container">
+                        <label class="toggle-box"><input type="checkbox" id="p-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Post to Channels</label>
+                        <label class="toggle-box bot-notify"><input type="checkbox" id="p-notify" checked> <i class="fas fa-bell" style="color:#ffcc00; font-size:20px;"></i> Notify Subscribers</label>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -280,7 +306,7 @@
                 <div class="card-header" style="color:#0088cc;"><i class="fas fa-paper-plane"></i> Send Custom Push Notification</div>
                 <div class="form-grid">
                     <div class="form-group full">
-                        <label>Thumbnail / Image URL (Optional)</label>
+                        <label>Thumbnail / Image URL (Optional - Best for engagement)</label>
                         <input type="text" id="push-img" placeholder="https://domain.com/image.jpg">
                     </div>
                     <div class="form-group full">
@@ -292,14 +318,17 @@
                         <input type="text" id="push-btn-text" placeholder="e.g. Open Mini App" value="Open App">
                     </div>
                     <div class="form-group">
-                        <label>Button Action URL (Optional)</label>
-                        <input type="text" id="push-btn-url" placeholder="Leave blank to open default Mini App">
+                        <label>Button Action URL (Optional - Leave blank for default Mini App)</label>
+                        <input type="text" id="push-btn-url" placeholder="e.g. https://t.me/...">
                     </div>
-                    <div class="form-group full">
-                        <label class="toggle-box"><input type="checkbox" id="push-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Send this to Connected Telegram Channels too</label>
+                    
+                    <!-- 🌟 Toggle Checkboxes for Custom Notify -->
+                    <div class="form-group full toggle-container">
+                        <label class="toggle-box"><input type="checkbox" id="push-autopost" checked> <i class="fab fa-telegram" style="color:#0088cc; font-size:20px;"></i> Post to Channels</label>
+                        <label class="toggle-box bot-notify"><input type="checkbox" id="push-notify" checked> <i class="fas fa-bell" style="color:#ffcc00; font-size:20px;"></i> Notify Subscribers</label>
                     </div>
                 </div>
-                <button onclick="sendCustomPush()" style="background:#0088cc; width:100%;"><i class="fas fa-bullhorn"></i> Send Custom Notification</button>
+                <button onclick="sendCustomPush()" style="background:#0088cc; width:100%;"><i class="fas fa-bullhorn"></i> Send Notification</button>
             </div>
         </div>
 
@@ -313,7 +342,7 @@
                     <div class="form-group"><label>Telegram App Shortname</label><input type="text" id="set-appname" placeholder="e.g. viralapp"></div>
                     <div class="form-group full"><label>Telegram Bot HTTP API Token (Required for Notifications)</label><input type="password" id="set-bottoken" placeholder="123456789:ABCDefgh..."></div>
                     
-                    <!-- 🌟 Auto Post Channels Manager -->
+                    <!-- 🌟 Channels Manager -->
                     <div class="form-group full" style="background:#f1f3f5; padding:15px; border-radius:8px; border:1px solid #ddd;">
                         <label style="color:#0088cc; font-size:15px;"><i class="fas fa-bullhorn"></i> Connected Telegram Channels (For Auto-Post)</label>
                         <p style="font-size:12px; color:gray; margin-top:0;">আপনার চ্যানেল বা গ্রুপের আইডি এখানে যুক্ত করুন (শুরুতে -100 থাকতে হবে)।</p>
@@ -345,7 +374,7 @@
     let siteSettings = { userDomain: window.location.origin, tgBotUsername: "", tgAppName: "", botToken: "" };
     let manageData = { videos: [], youtube: [], apps: [], prompts: [] };
     let currentManageType = 'videos';
-    let channelIds = []; // Stores the TG channel IDs for auto-posting
+    let channelIds = [];
 
     function toggleSidebar() { $('#sidebar').toggleClass('active'); $('.sidebar-overlay').toggleClass('active'); }
 
@@ -361,13 +390,10 @@
     });
 
     function loadCounts() {
-        ['videos', 'youtube', 'apps', 'prompts'].forEach(type => {
-            db.ref(type).on('value', s => { $(`#c-${type=== 'videos' ? 'vid' : type=== 'youtube' ? 'yt' : type}`).text(s.numChildren()); });
-        });
+        ['videos', 'youtube', 'apps', 'prompts'].forEach(type => { db.ref(type).on('value', s => { $(`#c-${type=== 'videos' ? 'vid' : type=== 'youtube' ? 'yt' : type}`).text(s.numChildren()); }); });
         db.ref('bot_subscribers').on('value', s => { $('#c-users').text(s.numChildren()); });
     }
 
-    // 🌟 Load Settings & Adsterra Codes & Channels
     function loadSettings() {
         db.ref('settings').on('value', s => {
             let v = s.val() || {};
@@ -381,45 +407,30 @@
             if(v.defaultPopup) $('#set-popup').val(v.defaultPopup);
             if(v.defaultAdFree) $('#set-adfree').val(v.defaultAdFree);
             
-            // Load Channel IDs
-            channelIds = v.channelIds ? Object.values(v.channelIds) : [];
-            renderChannels();
+            channelIds = v.channelIds ? Object.values(v.channelIds) : []; renderChannels();
         });
     }
 
     function saveSettings() {
         db.ref('settings').update({
-            userDomain: $('#set-domain').val(),
-            cpaLink: $('#set-cpa').val(),
-            socialbar: $('#set-socialbar').val(),
-            popunder: $('#set-popunder').val(),
-            tgBotUsername: $('#set-botuser').val(),
-            tgAppName: $('#set-appname').val(),
-            tgBotToken: $('#set-bottoken').val(),
-            defaultPopup: $('#set-popup').val() || 10,
-            defaultAdFree: $('#set-adfree').val() || 10,
-            channelIds: channelIds.length > 0 ? channelIds : null
+            userDomain: $('#set-domain').val(), cpaLink: $('#set-cpa').val(), socialbar: $('#set-socialbar').val(), popunder: $('#set-popunder').val(),
+            tgBotUsername: $('#set-botuser').val(), tgAppName: $('#set-appname').val(), tgBotToken: $('#set-bottoken').val(),
+            defaultPopup: $('#set-popup').val() || 10, defaultAdFree: $('#set-adfree').val() || 10, channelIds: channelIds.length > 0 ? channelIds : null
         }).then(() => alert("Settings Saved Successfully!"));
     }
 
-    // 🌟 Channel ID Management UI
     function addChannelId() {
         let val = $('#new-channel-id').val().trim();
-        if(val && !channelIds.includes(val)) {
-            channelIds.push(val); $('#new-channel-id').val(''); renderChannels();
-        } else if (!val) { alert("Please enter a valid ID"); }
+        if(val && !channelIds.includes(val)) { channelIds.push(val); $('#new-channel-id').val(''); renderChannels(); } 
+        else if (!val) { alert("Please enter a valid ID"); }
     }
     function removeChannelId(val) { channelIds = channelIds.filter(id => id !== val); renderChannels(); }
     function renderChannels() {
-        let h = '';
-        if(channelIds.length === 0) h = '<span style="color:gray; font-size:12px;">No channels connected.</span>';
-        channelIds.forEach(id => {
-            h += `<div class="channel-tag">${id} <i class="fas fa-times-circle" onclick="removeChannelId('${id}')"></i></div>`;
-        });
+        let h = ''; if(channelIds.length === 0) h = '<span style="color:gray; font-size:12px;">No channels connected.</span>';
+        channelIds.forEach(id => { h += `<div class="channel-tag">${id} <i class="fas fa-times-circle" onclick="removeChannelId('${id}')"></i></div>`; });
         $('#channel-list').html(h);
     }
 
-    // Categories
     function saveCategory() {
         let type = $('#catType').val(); let name = $('#catName').val();
         if(!name) return alert("Enter category name!");
@@ -453,7 +464,7 @@
         });
     }
 
-    // 🌟 Publish Post & Auto Post to Telegram Channel
+    // 🌟 Publish Post & Auto Notifications
     function savePost(type) {
         let idField = type === 'videos' ? 'v-id' : type === 'youtube' ? 'y-id' : type === 'apps' ? 'a-id' : 'p-id';
         let id = $(`#${idField}`).val(); let data = { timestamp: Date.now(), status: 'active' };
@@ -478,13 +489,14 @@
                 alert("Updated successfully!"); cancelEdit(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)')); 
             }); 
         } else { 
-            // 🌟 New Post: Check Auto Post Checkbox
-            let autoPostChecked = $(`#${type === 'videos' ? 'v' : type === 'youtube' ? 'y' : type === 'apps' ? 'a' : 'p'}-autopost`).is(':checked');
+            // Checkboxes
+            let autoPostChannel = $(`#${type === 'videos' ? 'v' : type === 'youtube' ? 'y' : type === 'apps' ? 'a' : 'p'}-autopost`).is(':checked');
+            let autoPostBot = $(`#${type === 'videos' ? 'v' : type === 'youtube' ? 'y' : type === 'apps' ? 'a' : 'p'}-notify`).is(':checked');
             
-            db.ref(type).push(data).then((snap) => { 
+            db.ref(type).push(data).then(async (snap) => { 
                 let newId = snap.key;
-                if(autoPostChecked && channelIds.length > 0) {
-                    sendAutoPostToChannels(newId, type, data.title, data.thumb || data.image || data.icon);
+                if(autoPostChannel || autoPostBot) {
+                    await sendPostNotifications(newId, type, encodeURIComponent(data.title), data.thumb || data.image || data.icon || '', autoPostChannel, autoPostBot);
                 } else {
                     alert("Published successfully!"); 
                     clearForm(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)')); 
@@ -522,11 +534,12 @@
                 let safeEncodedTitle = encodeURIComponent(String(rawTitle).substring(0, 50)).replace(/'/g, "%27");
                 let safeThumb = String(thumbImg).replace(/'/g, "%27");
 
+                // 🌟 Manage Buttons
                 h += `<tr><td><img src="${thumbImg}" class="${imgClass}"></td><td style="font-weight:600;">${titleTxt}</td><td><span class="badge ${statClass}">${x.d.status || 'active'}</span></td>
                     <td class="action-btns">
-                        <button class="btn-dark" onclick="copyWebUrl('${x.id}', '${type === 'videos' ? 'home' : type}')" title="Copy Web Link"><i class="fas fa-link"></i></button>
-                        <button class="btn-info" onclick="copyTgUrl('${x.id}', '${type === 'videos' ? 'home' : type}')" title="Copy TG Mini App Link"><i class="fab fa-telegram"></i></button>
-                        <button class="btn-warning" onclick="sendPush('${x.id}', '${type}', '${safeEncodedTitle}', '${safeThumb}')" title="Send Notification to Subs & Channels"><i class="fas fa-bell"></i> Notify</button>
+                        <button class="btn-dark" onclick="copyWebUrl('${x.id}', '${type === 'videos' ? 'home' : type}')" title="Copy Web Link"><i class="fas fa-link"></i> Web</button>
+                        <button class="btn-info" onclick="sendPostNotifications('${x.id}', '${type}', '${safeEncodedTitle}', '${safeThumb}', true, false)" title="Auto Post to Channels"><i class="fab fa-telegram-plane"></i> Post</button>
+                        <button class="btn-warning" onclick="sendPostNotifications('${x.id}', '${type}', '${safeEncodedTitle}', '${safeThumb}', false, true)" title="Send to Bot Subscribers"><i class="fas fa-bell"></i> Notify Subs</button>
                         <button class="btn-green" onclick="editPost('${type}', '${x.id}')"><i class="fas fa-edit"></i> Edit</button>
                         <button class="btn-warning" style="background:#dc3545;color:#fff;" onclick="toggleStatus('${type}', '${x.id}', '${x.d.status}')"><i class="fas fa-eye${x.d.status==='hidden'?'-slash':''}"></i></button>
                         <button class="btn-dark" style="background:#343a40;" onclick="deleteData('${type}', '${x.id}')"><i class="fas fa-trash"></i></button>
@@ -539,7 +552,6 @@
     function editPost(type, id) {
         let tabMap = { 'videos': 3, 'youtube': 4, 'apps': 5, 'prompts': 6 };
         let menuEl = document.querySelector(`.menu-item:nth-child(${tabMap[type]})`); switchTab(type, menuEl);
-        
         db.ref(`${type}/${id}`).once('value', s => {
             let d = s.val(); window.scrollTo({ top: 0, behavior: 'smooth' });
             if(type === 'videos') {
@@ -565,85 +577,120 @@
     function fetchYtThumb() { let u=$('#y-url').val(); let m=u.match(/(?:v=|youtu\.be\/|shorts\/)([^"&?\/\s]{11})/); if(m) $('#y-thumb').val(`https://img.youtube.com/vi/${m[1]}/hqdefault.jpg`); }
 
     function copyWebUrl(id, type) { let u = `${siteSettings.userDomain.replace(/\/$/, "")}/?id=${id}&type=${type}`; let t = $("<input>"); $("body").append(t); t.val(u).select(); document.execCommand("copy"); t.remove(); alert("Web Link Copied:\n" + u); }
-    function copyTgUrl(id, type) { if (!siteSettings.tgBotUsername || !siteSettings.tgAppName) return alert("Setup Telegram Bot details first!"); let u = `https://t.me/${siteSettings.tgBotUsername}/${siteSettings.tgAppName}?startapp=${type}_${id}`; let t = $("<input>"); $("body").append(t); t.val(u).select(); document.execCommand("copy"); t.remove(); alert("TG Mini App Link Copied:\n" + u); }
 
-    // 🌟 Auto Post Logic
-    async function sendAutoPostToChannels(id, type, rawTitle, thumbUrl) {
-        if(!siteSettings.botToken || channelIds.length === 0) {
-            alert("Published successfully!"); clearForm(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)')); return;
+    // 🌟 MASTER NOTIFICATION SENDER (Fixes Deep Link and Bengali Text)
+    async function sendPostNotifications(id, type, encTitle, thumbUrl, toChannels, toSubs) {
+        if(!siteSettings.botToken) {
+            alert("Bot Token is missing in Settings! Cannot send to Telegram.");
+            let activeId = $('.section.active').attr('id');
+            if(['videos','youtube','apps','prompts'].includes(activeId)) { clearForm(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)')); }
+            return;
         }
-        $('#loadingText').text("Auto-Posting to Channels..."); $('#loadingScreen').css('display', 'flex');
         
-        let title = String(rawTitle).substring(0, 50); let dbType = type === 'videos' ? 'home' : type;
-        let webAppUrl = `${siteSettings.userDomain.replace(/\/$/, "")}/?id=${id}&type=${dbType}`;
-        let btnText = type === 'apps' ? '📥 Download Now' : type === 'prompts' ? '💡 View Prompt' : '▶️ Watch Now';
-        let messageText = `🔥 <b>New Post Added!</b>\n\n📌 <b>${title}</b>\n\nClick the button below to view it instantly! 👇`;
-        let apiUrl = (thumbUrl && thumbUrl !== 'https://via.placeholder.com/60x40') ? `https://api.telegram.org/bot${siteSettings.botToken}/sendPhoto` : `https://api.telegram.org/bot${siteSettings.botToken}/sendMessage`;
-
-        for(let i=0; i<channelIds.length; i++) {
-            let payload = { chat_id: channelIds[i], parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: btnText, web_app: { url: webAppUrl } }]] } };
-            if(apiUrl.includes('sendPhoto')) { payload.photo = thumbUrl; payload.caption = messageText; } else { payload.text = messageText; }
-            try { await $.ajax({ url: apiUrl, type: "POST", contentType: "application/json", data: JSON.stringify(payload) }); } catch(e) { console.log(e); }
-        }
-        $('#loadingScreen').hide(); alert("Published and Auto-Posted to Channels successfully!"); clearForm(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)'));
-    }
-
-    // 🌟 Manual Push Logic (Subscribers AND Channels)
-    async function sendPush(id, type, encTitle, thumbUrl) {
-        if(!siteSettings.botToken) return alert("Bot Token missing!");
-        let title = decodeURIComponent(encTitle); if(!confirm(`Send Push Notification to all Users & Channels for: "${title}"?`)) return;
+        let title = decodeURIComponent(encTitle);
+        $('#loadingText').text("Posting to Telegram..."); $('#loadingScreen').css('display', 'flex');
         
-        $('#loadingText').text("Sending Post Notifications..."); $('#loadingScreen').css('display', 'flex');
-        let dbType = type === 'videos' ? 'home' : type; let webAppUrl = `${siteSettings.userDomain.replace(/\/$/, "")}/?id=${id}&type=${dbType}`;
-        let btnText = type === 'apps' ? '📥 Download Now' : type === 'prompts' ? '💡 View Prompt' : '▶️ Watch Now';
-        let messageText = `🔥 <b>New Post Added!</b>\n\n📌 <b>${title}</b>\n\nClick the button below to view it instantly! 👇`;
-        let apiUrl = (thumbUrl && thumbUrl !== 'https://via.placeholder.com/60x40') ? `https://api.telegram.org/bot${siteSettings.botToken}/sendPhoto` : `https://api.telegram.org/bot${siteSettings.botToken}/sendMessage`;
+        let dbType = type === 'videos' ? 'home' : type;
+        
+        // 🌟 Telegram Native Deep Link
+        let tgLink = `https://t.me/${siteSettings.tgBotUsername}/${siteSettings.tgAppName}?startapp=${dbType}_${id}`;
+        
+        // 🌟 Bengali Text Fix
+        let btnText = type === 'apps' ? '📥 অ্যাপটি ডাউনলোড করুন' : type === 'prompts' ? '💡 প্রম্পটটি দেখুন' : '▶️ ভিডিওটি দেখুন';
+        let messageText = `🔥 <b>নতুন পোস্ট যুক্ত হয়েছে!</b>\n\n📌 <b>${title}</b>\n\nনিচের বাটনে ক্লিক করে সরাসরি দেখুন! 👇`;
+
+        let apiUrl = (thumbUrl && thumbUrl !== 'https://via.placeholder.com/60x40') 
+            ? `https://api.telegram.org/bot${siteSettings.botToken}/sendPhoto` 
+            : `https://api.telegram.org/bot${siteSettings.botToken}/sendMessage`;
 
         try {
-            let snap = await db.ref('bot_subscribers').once('value');
-            let users = []; if(snap.exists()) snap.forEach(c => { users.push(c.key); });
+            let targets = [];
             
-            // Combine Bot Subscribers and Connected Channels!
-            let allTargets = users.concat(channelIds);
+            if (toSubs) {
+                let snap = await db.ref('bot_subscribers').once('value');
+                if(snap.exists()) snap.forEach(c => { targets.push(c.key); });
+            }
+            
+            if (toChannels && channelIds && channelIds.length > 0) {
+                targets = targets.concat(channelIds);
+            }
+
+            if(targets.length === 0) {
+                $('#loadingScreen').hide();
+                alert("No target (Subscribers or Channels) found to send!");
+                return;
+            }
+
+            targets = [...new Set(targets)]; // Remove duplicates
             let sent = 0; let failed = 0;
 
-            for(let i=0; i<allTargets.length; i++) {
-                let payload = { chat_id: allTargets[i], parse_mode: "HTML", reply_markup: { inline_keyboard: [[{ text: btnText, web_app: { url: webAppUrl } }]] } };
-                if(apiUrl.includes('sendPhoto')) { payload.photo = thumbUrl; payload.caption = messageText; } else { payload.text = messageText; }
-                try { await $.ajax({ url: apiUrl, type: "POST", contentType: "application/json", data: JSON.stringify(payload) }); sent++; } catch(e) { failed++; }
+            for(let i=0; i<targets.length; i++) {
+                let payload = {
+                    chat_id: targets[i],
+                    parse_mode: "HTML",
+                    reply_markup: { inline_keyboard: [[{ text: btnText, url: tgLink }]] } // 🌟 Used URL instead of Web App to fix browser issue
+                };
+
+                if(apiUrl.includes('sendPhoto')) {
+                    payload.photo = thumbUrl; payload.caption = messageText;
+                } else { payload.text = messageText; }
+
+                try { await $.ajax({ url: apiUrl, type: "POST", contentType: "application/json", data: JSON.stringify(payload) }); sent++; } 
+                catch(e) { failed++; }
             }
-            $('#loadingScreen').hide(); alert(`Notification Sent!\nSuccess: ${sent}\nFailed: ${failed}`);
-        } catch(error) { $('#loadingScreen').hide(); alert("Error sending notifications!"); }
+            
+            $('#loadingScreen').hide(); 
+            alert(`Telegram Action Success!\nSent: ${sent}\nFailed: ${failed}`);
+            
+            let activeId = $('.section.active').attr('id');
+            if(['videos','youtube','apps','prompts'].includes(activeId)) {
+                clearForm(type); switchTab('manage', document.querySelector('.menu-item:nth-child(2)'));
+            }
+            
+        } catch(error) { 
+            $('#loadingScreen').hide(); alert("Error sending to Telegram!"); 
+        }
     }
 
     // 🌟 CUSTOM PUSH NOTIFICATIONS
     async function sendCustomPush() {
         if(!siteSettings.botToken) return alert("Bot Token missing!");
+        
         let imgUrl = $('#push-img').val(); let text = $('#push-text').val();
         let btnText = $('#push-btn-text').val() || "Open App"; let customUrl = $('#push-btn-url').val();
+        
         let isAutoPost = $('#push-autopost').is(':checked');
+        let isBotNotify = $('#push-notify').is(':checked');
         
         if(!text) return alert("Please enter a message or caption!");
         if(!confirm("Are you sure you want to send this notification?")) return;
         
         $('#loadingText').text("Sending Custom Notifications..."); $('#loadingScreen').css('display', 'flex');
         
-        let webAppUrl = siteSettings.userDomain.replace(/\/$/, "");
-        let btnObj = customUrl ? { text: btnText, url: customUrl } : { text: btnText, web_app: { url: webAppUrl } };
+        let tgLink = customUrl ? customUrl : `https://t.me/${siteSettings.tgBotUsername}/${siteSettings.tgAppName}`;
+        let btnObj = { text: btnText, url: tgLink };
+        
         let apiUrl = imgUrl ? `https://api.telegram.org/bot${siteSettings.botToken}/sendPhoto` : `https://api.telegram.org/bot${siteSettings.botToken}/sendMessage`;
         
         try {
-            let snap = await db.ref('bot_subscribers').once('value');
-            let users = []; if(snap.exists()) snap.forEach(c => { users.push(c.key); });
+            let targets = [];
+            if(isBotNotify) {
+                let snap = await db.ref('bot_subscribers').once('value');
+                if(snap.exists()) snap.forEach(c => { targets.push(c.key); });
+            }
+            if(isAutoPost) targets = targets.concat(channelIds);
             
-            // Include channels if checkbox is ticked
-            let allTargets = isAutoPost ? users.concat(channelIds) : users;
+            targets = [...new Set(targets)];
+            if(targets.length === 0) { $('#loadingScreen').hide(); return alert("No target selected!"); }
+
             let sent = 0; let failed = 0;
 
-            for(let i=0; i<allTargets.length; i++) {
-                let payload = { chat_id: allTargets[i], parse_mode: "HTML", reply_markup: { inline_keyboard: [[ btnObj ]] } };
+            for(let i=0; i<targets.length; i++) {
+                let payload = { chat_id: targets[i], parse_mode: "HTML", reply_markup: { inline_keyboard: [[ btnObj ]] } };
                 if(imgUrl) { payload.photo = imgUrl; payload.caption = text; } else { payload.text = text; }
-                try { await $.ajax({ url: apiUrl, type: "POST", contentType: "application/json", data: JSON.stringify(payload) }); sent++; } catch(e) { failed++; }
+
+                try { await $.ajax({ url: apiUrl, type: "POST", contentType: "application/json", data: JSON.stringify(payload) }); sent++; } 
+                catch(e) { failed++; }
             }
             $('#loadingScreen').hide(); $('#push-img, #push-text, #push-btn-url').val('');
             alert(`Custom Notification Sent!\nSuccess: ${sent}\nFailed: ${failed}`);
